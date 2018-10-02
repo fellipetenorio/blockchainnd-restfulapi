@@ -21,3 +21,6 @@ Example of body to the POST:
 The body can be of any type that can be stringyfied.
 Notice that there is no consensus algorithm and you can add a lot of the same block.
 Use by yourself and by your own risk.
+
+Access any other end point (e.g. /blocks) will generate a JSON with 404 information:
+{"statusCode":404,"error":"Not Found","message":"Not Found"}
