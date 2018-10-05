@@ -110,7 +110,7 @@ server.route({
         const message = request.payload.address+":"+ts;
 
         // put the message in the cache with the action required
-        const register = regCache.set(request.payload.address, {"action":starRegistryLabel, "timestamp":ts}, validationTimeSeconds, function(err, success){
+        const register = regCache.set(request.payload.address, {"action":starRegistryLabel, "timestamp":ts, "valid":false}, validationTimeSeconds, function(err, success){
             if(err) console.log('some error', err);
             if(!success) console.log('problem in register the request');
         });
@@ -153,22 +153,39 @@ server.route({
             let address = request.payload.address;
             let signature = request.payload.signature;
             let message = address+":"+value.timestamp+":"+value.action;
-            console.log(address, signature, message);
-
+            
             let valid = bitcoinMessage.verify(message, address, signature);
-            console.log(valid);
-
-            // for now return success
-            return {
-                "registerStar": true,
+            let newValidationWindow = validationTimeSeconds-(new Date().getTime().toString().slice(0,-3)-value.timestamp);
+            let validateResult = {
+                "registerStar": false, // by default is not valid
                 "status": {
                     "address": request.payload.address,
                     "requestTimeStamp": value.timestamp,
-                    "message": request.payload.address+":"+value.timestamp+":"+value.action,
-                    "validationWindow": validationTimeSeconds-(new Date().getTime().toString().slice(0,-3)-value.timestamp),
+                    "message": message,
+                    "validationWindow": newValidationWindow,
                     "messageSignature": (valid?"valid":"invalid")
                 }
             };
+            // if is valid, save in cache the permission
+            return new Promise((resolve, reject) => {
+                if(valid) {
+                    regCache.set(address, {"action":starRegistryLabel, "timestamp":value.timestamp, "valid":valid}, newValidationWindow, function(err, success){
+                        if(err) reject(err);
+                        resolve(success);
+                    });
+                }
+
+                regCache.del(address, newValidationWindow, function(err, success){
+                    if(err) reject(err); // problem in deleting
+                    resolve(false); // because was deleted
+                });
+                
+            }).then(function(success){
+                validateResult.registerStar = success;
+                return validateResult;
+            }, function(err){
+                return validateResult;
+            });
         }, function(err){
             return 'problem to access cache';
         });;
