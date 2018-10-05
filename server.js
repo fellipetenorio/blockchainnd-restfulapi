@@ -186,7 +186,13 @@ server.route({
             return 'invalid search';
         }
         
-        return blockchain.filterBlocks(filter, request.params.value)
+        // handle block after filter
+        let handler = function(block) {
+            block.body.star.storyDecoded = "";
+            return block;
+        }
+
+        return blockchain.filterBlocks(filter, request.params.value, handler)
         .then(function(blocks){
             return blocks;
         }, function(err){
@@ -197,14 +203,14 @@ server.route({
 });
 
 // get block star by height (just like get block/heigth)
-// didn't know how to alias the route, so I duplicated id
 server.route({
     method: 'GET',
     path: '/stars/{height}',
     handler: (request, h) => {
         return blockchain.getBlock(request.params.height)
-        .then(function(block){
-            return block;
+        .then(function(blockStr){
+            let block = JSON.parse(blockStr);
+            return block.body.star != undefined ? block:'Not found';
         }, function(err){
             return 'Not Found!';
         });

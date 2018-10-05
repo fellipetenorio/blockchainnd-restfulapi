@@ -42,13 +42,13 @@ exports.getLatestBlockDB = function() {
 }
  
 // Get latest block (bigger height)
-exports.filterBlocksDB = function(filter, value) {
+exports.filterBlocksDB = function(filter, value, handler) {
   return new Promise((resolve, reject) => {
   	let blocks = [];
     db.createReadStream().on('data', function(data) {
       let obj = JSON.parse(data.value);
       if(filter(obj, value))
-        blocks.push(obj);
+        blocks.push(handler(obj));
     }).on('error', function(err) {
       reject(err);
     }).on('close', function() {

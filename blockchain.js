@@ -70,9 +70,9 @@ class Blockchain {
   }
   
   // get a block by it's height
-  filterBlocks(filter, value) {
+  filterBlocks(filter, value, handler) {
     return new Promise((resolve, reject) => {
-      level.filterBlocksDB(filter, value).then(resolve, reject);
+      level.filterBlocksDB(filter, value, handler).then(resolve, reject);
     });
   }
 
