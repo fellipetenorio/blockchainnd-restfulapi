@@ -45,7 +45,7 @@ class Blockchain {
         level.getLevelDBData(result).then(function(result2) {
           // new block in the chain
           let previousBlock = JSON.parse(result2);
-          newBlock.previousHash = previousBlock.hash;
+          newBlock.previousBlockHash = previousBlock.hash;
           newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
 
           // add block to DB
@@ -112,7 +112,7 @@ class Blockchain {
             let currentBlock = JSON.parse(values[i]);
             let previousBlock = JSON.parse(values[i+1]);
             
-            if(currentBlock.previousHash != previousBlock.hash) 
+            if(currentBlock.previousBlockHash != previousBlock.hash) 
               resolve(false);
             
           }
