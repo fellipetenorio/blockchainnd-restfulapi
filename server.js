@@ -5,7 +5,8 @@ const blockchain = require('./blockchain.js');
 const Block = require('./block');
 const validationTimeSeconds = 10
 const starStorySizeLimit = 250;
-
+const bitcoin = require('bitcoinjs-lib');
+const bitcoinMessage = require('bitcoinjs-message');
 
 // to keep the register request we'll use cache with TTL
 // In future implementation some database can be used
@@ -148,6 +149,15 @@ server.route({
             });
         }).then(function(value){
             if(value == undefined) return 'expired or invalid';
+            // check validation
+            let address = request.payload.address;
+            let signature = request.payload.signature;
+            let message = address+":"+value.timestamp+":"+value.action;
+            console.log(address, signature, message);
+
+            let valid = bitcoinMessage.verify(message, address, signature);
+            console.log(valid);
+
             // for now return success
             return {
                 "registerStar": true,
@@ -156,7 +166,7 @@ server.route({
                     "requestTimeStamp": value.timestamp,
                     "message": request.payload.address+":"+value.timestamp+":"+value.action,
                     "validationWindow": validationTimeSeconds-(new Date().getTime().toString().slice(0,-3)-value.timestamp),
-                    "messageSignature": "valid"
+                    "messageSignature": (valid?"valid":"invalid")
                 }
             };
         }, function(err){

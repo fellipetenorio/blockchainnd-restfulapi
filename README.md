@@ -17,6 +17,17 @@ These instructions will get you a copy of the project up and running on your loc
 
 You will need the npm to run the project. Check this [link](https://nodejs.org/en/download/) to install Node in you plataform.
 
+Some dependencies:
+
+* bitcoinjs-lib": "^4.0.2
+* bitcoinjs-message": "^2.0.0
+* crypto-js": "^3.1.9-1
+* hapi": "^17.6.0
+* level": "^4.0.0
+* node-cache": "^4.2.0
+
+Check file *package.json* for more information.
+
 ### Installing
 
 To install the packages needed (Hapijs, level, etc.) type:
