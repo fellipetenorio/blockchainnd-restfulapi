@@ -177,11 +177,16 @@ server.route({
             filter = function(block, value){
                 return block.body.address != undefined && block.body.address === value;
             }
+        } else if(request.params.attr === 'hash') {
+            filter = function(block, value){
+                return block.hash != undefined && block.hash === value;
+            }
+        } else {
+            return 'invalid search';
         }
         
         return blockchain.filterBlocks(filter, request.params.value)
         .then(function(blocks){
-            console.log('blocks');
             return blocks;
         }, function(err){
             return 'Not Found!';
