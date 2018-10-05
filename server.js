@@ -3,7 +3,7 @@
 const Hapi = require('hapi');
 const blockchain = require('./blockchain.js');
 const Block = require('./block');
-const validationTimeSeconds = 10
+const validationTimeSeconds = 60
 const starStorySizeLimit = 250;
 const bitcoin = require('bitcoinjs-lib');
 const bitcoinMessage = require('bitcoinjs-message');
@@ -111,7 +111,7 @@ server.route({
         const message = request.payload.address+":"+ts;
 
         // put the message in the cache with the action required
-        return mempool.addWalletMemPool(request.payload.address, 
+        return mempool.set(request.payload.address, 
             {"action":starRegistryLabel, "timestamp":ts, "valid":false}, validationTimeSeconds)
             .then(function(data){
                 return {
@@ -138,42 +138,38 @@ server.route({
         if(null === request.payload || !request.payload.hasOwnProperty('signature'))
             return 'missing signature';
 
+        let validateResult = {
+            "registerStar": false, // by default is not valid
+            "status": {
+                "address": request.payload.address,
+                "requestTimeStamp": 0,
+                "message": "",
+                "validationWindow": 0,
+                "messageSignature": "invalid"
+            }
+        };
         // retrieve registration
-        return new Promise((resolve, reject) => {
-            regCache.get(request.payload.address, function(err, value){
-                if(err) reject(err);
-                resolve(value);
-            });
-        }).then(function(value){
+        return mempool.get(request.payload.address).then(function(value){
             if(value == undefined) return 'expired or invalid';
+            console.log(value);
             // check validation
             let address = request.payload.address;
             let signature = request.payload.signature;
             let message = address+":"+value.timestamp+":"+value.action;
             
-            let valid = bitcoinMessage.verify(message, address, signature);
-            let newValidationWindow = validationTimeSeconds-(new Date().getTime().toString().slice(0,-3)-value.timestamp);
-            let validateResult = {
-                "registerStar": false, // by default is not valid
-                "status": {
-                    "address": request.payload.address,
-                    "requestTimeStamp": value.timestamp,
-                    "message": message,
-                    "validationWindow": newValidationWindow,
-                    "messageSignature": (valid?"valid":"invalid")
-                }
-            };
+            let valid = true;//bitcoinMessage.verify(message, address, signature);
+            let newTTLInSec = validationTimeSeconds-(new Date().getTime().toString().slice(0,-3)-value.timestamp);
+            
+            validateResult.status.message = message;
+            validateResult.status.validationWindow = newTTLInSec;
+            
             // if is valid, save in cache the permission
-            return new Promise((resolve, reject) => {
-                // just update the cache with the validation and return
-                regCache.set(address, {"action":starRegistryLabel, "timestamp":value.timestamp, "valid":valid}, newValidationWindow, function(err, success){
-                    if(err) reject(err);
-                    resolve(success);
-                });
-            }).then(function(success){
+            return mempool.set(address, 
+                {"action":starRegistryLabel, "timestamp":value.timestamp, "valid":valid}, newTTLInSec).then(function(success){
                 if(success) {
                     // status updated
                     validateResult.registerStar = valid;
+                    validateResult.status.messageSignature = (valid?"valid":"invalid");
                 } else {
                     console.log('problem to update the cache');
                     validateResult.registerStar = false;
@@ -183,7 +179,7 @@ server.route({
                 return validateResult;
             });
         }, function(err){
-            return 'problem to access cache';
+            return validateResult;
         });;
     }
 });

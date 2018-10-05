@@ -8,11 +8,21 @@ const ttl = require('level-ttl');
 const mempoolDB = './mempooldata';
 const mempool = ttl(level(mempoolDB));
 
-exports.addWalletMemPool = function(key, data, ttl) {
+exports.set = function(key, data, ttlInSeconds) {
   return new Promise((resolve, reject) => {
-    mempool.put(key, data, {ttl: ttl}, function(err) {
+    mempool.put(key, JSON.stringify(data), {ttl: ttlInSeconds*1000}, function(err) {
       if(err) reject(err);
       resolve(data);
-    })
+    });
+  });
+}
+
+exports.get = function(key) {
+  return new Promise((resolve, reject) => {
+    mempool.get(key, function(err, data) {
+      console.log
+      if (err) reject(err);
+      else resolve(JSON.parse(data));
+    });
   });
 }
