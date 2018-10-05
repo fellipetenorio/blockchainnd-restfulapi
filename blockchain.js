@@ -69,6 +69,13 @@ class Blockchain {
     });
   }
   
+  // get a block by it's height
+  filterBlocks(filter, value) {
+    return new Promise((resolve, reject) => {
+      level.filterBlocksDB(filter, value).then(resolve, reject);
+    });
+  }
+
   validateBlock(height) {
     return new Promise((resolve, reject) => {
       level.getLevelDBData(height).then(function(result){

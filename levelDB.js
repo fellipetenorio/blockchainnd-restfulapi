@@ -40,7 +40,23 @@ exports.getLatestBlockDB = function() {
     });
   });
 }
-  
+ 
+// Get latest block (bigger height)
+exports.filterBlocksDB = function(filter, value) {
+  return new Promise((resolve, reject) => {
+  	let blocks = [];
+    db.createReadStream().on('data', function(data) {
+      let obj = JSON.parse(data.value);
+      if(filter(obj, value))
+        blocks.push(obj);
+    }).on('error', function(err) {
+      reject(err);
+    }).on('close', function() {
+      resolve(blocks);
+    });
+  });
+}
+
 /*
 // Add data to levelDB with value
 exports.addDataToLevelDB= function(value) {

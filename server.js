@@ -35,7 +35,6 @@ server.route({
     method: 'GET',
     path: '/block/{height}',
     handler: (request, h) => {
-        console.log(blockchain);
         return blockchain.getBlock(request.params.height)
         .then(function(block){
             return block;
@@ -132,7 +131,7 @@ server.route({
 
 server.route({
     method: 'POST',
-    path: '/message-signature/validate2',
+    path: '/message-signature/validate',
     handler: (request, h) => {
         if(null === request.payload || !request.payload.hasOwnProperty('address'))
             return 'missing address';
@@ -165,9 +164,34 @@ server.route({
     }
 });
 
+
+// get block by star attributes
+server.route({
+    method: 'GET',
+    path: '/stars/{attr}:{value}',
+    handler: (request, h) => {
+        // fimple filter strategy
+        let filter;
+        // validate
+        if(request.params.attr === 'address') {
+            filter = function(block, value){
+                return block.body.address != undefined && block.body.address === value;
+            }
+        }
+        
+        return blockchain.filterBlocks(filter, request.params.value)
+        .then(function(blocks){
+            console.log('blocks');
+            return blocks;
+        }, function(err){
+            return 'Not Found!';
+        });
+        //return 'Hello, ' + encodeURIComponent(request.params.height) + '!';
+    }
+});
+
 const init = async () => {
     // create blockchain
-    console.log(blockchain);
     await server.start();
     console.log(`Server running at: ${server.info.uri}`);
 };
