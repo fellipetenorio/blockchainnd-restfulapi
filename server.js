@@ -3,11 +3,11 @@
 const Hapi = require('hapi');
 const blockchain = require('./blockchain.js');
 const Block = require('./block');
-const validationTimeSeconds = 60
+const validationTimeSeconds = 5;
 const starStorySizeLimit = 250;
 const bitcoin = require('bitcoinjs-lib');
 const bitcoinMessage = require('bitcoinjs-message');
-const mempool = require('./mempoolDB')
+const mempool = require('./mempoolDB');
 
 // to keep the register request we'll use cache with TTL
 // In future implementation some database can be used
@@ -108,6 +108,8 @@ server.route({
             let valid = true;//bitcoinMessage.verify(message, address, signature);
             let newTTLInSec = validationTimeSeconds-(new Date().getTime().toString().slice(0,-3)-value.timestamp);
             
+            if(0 >= newTTLInSec)  return 'expired or invalid'; // zero
+
             validateResult.status.message = message;
             validateResult.status.validationWindow = newTTLInSec;
             
@@ -157,11 +159,15 @@ server.route({
         
         // get validation from mempool
         return mempool.get(request.payload.address).then(function(starRegistration){
-            if(request == undefined) return 'expired or invalid';
-            // check validation
-            if(!starRegistration.valid) {
+            if(starRegistration == undefined) return 'expired or invalid';
+            // check validation and ttl
+            let newTTLInSec = validationTimeSeconds-(new Date().getTime().toString().slice(0,-3)-starRegistration.timestamp);
+            console.log(starRegistration);
+            console.log(newTTLInSec);
+            
+            if(!starRegistration.valid || 0 >= newTTLInSec) {
                 // invalid, remove from mempool e return
-                return mempool.del(starRegistration.payload.address)
+                return mempool.del(request.payload.address)
                 .then(function(){
                     return 'expired or invalid';
                 }, function(err){
