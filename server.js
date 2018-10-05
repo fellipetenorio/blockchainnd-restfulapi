@@ -7,12 +7,13 @@ const validationTimeSeconds = 10
 const starStorySizeLimit = 250;
 const bitcoin = require('bitcoinjs-lib');
 const bitcoinMessage = require('bitcoinjs-message');
+const mempool = require('./mempoolDB')
 
 // to keep the register request we'll use cache with TTL
 // In future implementation some database can be used
 const NodeCache = require( "node-cache" );
 // - perhaps change to a file storage to not lose the requests?
-const regCache = new NodeCache({ stdTTL: validationTimeSeconds });
+//const regCache = new NodeCache({ stdTTL: validationTimeSeconds });
 // The name of the action
 const starRegistryLabel = "starRegistry";
 
@@ -110,23 +111,19 @@ server.route({
         const message = request.payload.address+":"+ts;
 
         // put the message in the cache with the action required
-        const register = regCache.set(request.payload.address, {"action":starRegistryLabel, "timestamp":ts, "valid":false}, validationTimeSeconds, function(err, success){
-            if(err) console.log('some error', err);
-            if(!success) console.log('problem in register the request');
-        });
-
-        if(!register) {
-            console.log('problem in register the request');
-            return 'problem in register the request';
-        }
-
-        // new registration
-        return {
-            "address": request.payload.address,
-            "requestTimeStamp": ts,
-            "message": message+":"+starRegistryLabel,
-            "validationWindow": validationTimeSeconds
-        }
+        return mempool.addWalletMemPool(request.payload.address, 
+            {"action":starRegistryLabel, "timestamp":ts, "valid":false}, validationTimeSeconds)
+            .then(function(data){
+                return {
+                    "address": request.payload.address,
+                    "requestTimeStamp": ts,
+                    "message": message+":"+starRegistryLabel,
+                    "validationWindow": validationTimeSeconds
+                }
+            }, function(err){
+                console.log('problem in register the request');
+                return 'problem in register the request';
+            });
     }
 });
 
@@ -168,20 +165,19 @@ server.route({
             };
             // if is valid, save in cache the permission
             return new Promise((resolve, reject) => {
-                if(valid) {
-                    regCache.set(address, {"action":starRegistryLabel, "timestamp":value.timestamp, "valid":valid}, newValidationWindow, function(err, success){
-                        if(err) reject(err);
-                        resolve(success);
-                    });
-                }
-
-                regCache.del(address, newValidationWindow, function(err, success){
-                    if(err) reject(err); // problem in deleting
-                    resolve(false); // because was deleted
+                // just update the cache with the validation and return
+                regCache.set(address, {"action":starRegistryLabel, "timestamp":value.timestamp, "valid":valid}, newValidationWindow, function(err, success){
+                    if(err) reject(err);
+                    resolve(success);
                 });
-                
             }).then(function(success){
-                validateResult.registerStar = success;
+                if(success) {
+                    // status updated
+                    validateResult.registerStar = valid;
+                } else {
+                    console.log('problem to update the cache');
+                    validateResult.registerStar = false;
+                } 
                 return validateResult;
             }, function(err){
                 return validateResult;
