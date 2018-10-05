@@ -188,7 +188,7 @@ server.route({
         
         // handle block after filter
         let handler = function(block) {
-            block.body.star.storyDecoded = "";
+            block.body.star.storyDecoded = new Buffer(block.body.star.story, 'hex').toString();
             return block;
         }
 
@@ -210,7 +210,12 @@ server.route({
         return blockchain.getBlock(request.params.height)
         .then(function(blockStr){
             let block = JSON.parse(blockStr);
-            return block.body.star != undefined ? block:'Not found';
+            if(block.body.star == undefined) {
+                return 'Not found';
+            }
+
+            block.body.star.storyDecoded = new Buffer(block.body.star.story, 'hex').toString();
+            return block;
         }, function(err){
             return 'Not Found!';
         });
