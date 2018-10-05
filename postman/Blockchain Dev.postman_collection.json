@@ -1,0 +1,192 @@
+{
+	"info": {
+		"_postman_id": "ae766b06-e383-495f-b635-c5e4c1d77e1e",
+		"name": "Blockchain Dev",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "/message-signature/validate",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"disabled": false
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"address\": \"142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ\",\n  \"signature\": \"H6ZrGrF0Y4rMGBMRT2+hHWGbThTIyhBS0dNKQRov9Yg6GgXcHxtO9GJN4nwD2yNXpnXHTWU9i+qdw5vpsooryLU=\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8000/message-signature/validate",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"message-signature",
+						"validate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/requestValidation",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"disabled": false
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"address\": \"142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8000/requestValidation",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"requestValidation"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/block",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"address\": \"142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ\",\r\n  \"star\": {\r\n    \"dec\": \"-26° 29' 24.9\",\r\n    \"ra\": \"16h 29m 1.0s\",\r\n    \"story\": \"Found star using https://www.google.com/sky/\"\r\n  }\r\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8000/block",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"block"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/stars/address:[ADDRESS]",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"address\": \"142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ\",\r\n  \"star\": {\r\n    \"dec\": \"-26° 29' 24.9\",\r\n    \"ra\": \"16h 29m 1.0s\",\r\n    \"story\": \"Found star using https://www.google.com/sky/\"\r\n  }\r\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8000/stars/address:142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"stars",
+						"address:142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/stars/hash:[HASH]",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"address\": \"142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ\",\r\n  \"star\": {\r\n    \"dec\": \"-26° 29' 24.9\",\r\n    \"ra\": \"16h 29m 1.0s\",\r\n    \"story\": \"Found star using https://www.google.com/sky/\"\r\n  }\r\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8000/stars/hash:40da11ea46743c197c779fd6a643ae6222ec629b948362c98a2341b98942590d",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"stars",
+						"hash:40da11ea46743c197c779fd6a643ae6222ec629b948362c98a2341b98942590d"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/stars/[HEIGHT]",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"address\": \"142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ\",\r\n  \"star\": {\r\n    \"dec\": \"-26° 29' 24.9\",\r\n    \"ra\": \"16h 29m 1.0s\",\r\n    \"story\": \"Found star using https://www.google.com/sky/\"\r\n  }\r\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8000/stars/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"stars",
+						"1"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

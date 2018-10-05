@@ -3,7 +3,7 @@
 const Hapi = require('hapi');
 const blockchain = require('./blockchain.js');
 const Block = require('./block');
-const validationTimeSeconds = 30;
+const validationTimeSeconds = 5 * 60; // project specification
 const starStorySizeLimit = 250;
 const bitcoin = require('bitcoinjs-lib');
 const bitcoinMessage = require('bitcoinjs-message');
@@ -59,8 +59,22 @@ server.route({
         const ts = new Date().getTime().toString().slice(0,-3);
         const message = request.payload.address+":"+ts;
 
-        // put the message in the cache with the action required
-        return mempool.set(request.payload.address, 
+        //When re-submitting within validation window, validation window should reduce until it expires.
+        // if is a re-submitting. If exists, only show the updated ttl
+        return mempool.get(request.payload.address)
+        .then(function(starRegistration){
+            // return the registration with updated ttl
+            let currentTTL = validationTimeSeconds-(new Date().getTime().toString().slice(0,-3)-starRegistration.timestamp);
+            return {
+                "address": request.payload.address,
+                "requestTimeStamp": ts,
+                "message": message+":"+starRegistryLabel,
+                "validationWindow": currentTTL
+            }
+        }, function(err){
+            // new registry
+            // put the message in the cache with the action required
+            return mempool.set(request.payload.address, 
             {"action":starRegistryLabel, "timestamp":ts, "valid":false}, validationTimeSeconds)
             .then(function(data){
                 return {
@@ -73,6 +87,7 @@ server.route({
                 console.log('problem in register the request');
                 return 'problem in register the request';
             });
+        });
     }
 });
 

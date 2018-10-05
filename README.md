@@ -13,6 +13,8 @@ All information in this project is directly or indirectly from [Udacity Nano Deg
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
+There is a file *postman/Blockchain Dev.postman_collection.json* to import in the [Postman](https://www.getpostman.com/) (a client to make HTTP request easily) with the requests.
+
 ### Prerequisites
 
 You will need the npm to run the project. Check this [link](https://nodejs.org/en/download/) to install Node in you plataform.
