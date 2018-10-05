@@ -129,6 +129,7 @@ server.route({
     }
 });
 
+// validate message-signature
 server.route({
     method: 'POST',
     path: '/message-signature/validate',
@@ -188,6 +189,22 @@ server.route({
         return blockchain.filterBlocks(filter, request.params.value)
         .then(function(blocks){
             return blocks;
+        }, function(err){
+            return 'Not Found!';
+        });
+        //return 'Hello, ' + encodeURIComponent(request.params.height) + '!';
+    }
+});
+
+// get block star by height (just like get block/heigth)
+// didn't know how to alias the route, so I duplicated id
+server.route({
+    method: 'GET',
+    path: '/stars/{height}',
+    handler: (request, h) => {
+        return blockchain.getBlock(request.params.height)
+        .then(function(block){
+            return block;
         }, function(err){
             return 'Not Found!';
         });
