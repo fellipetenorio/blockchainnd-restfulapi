@@ -47,57 +47,6 @@ server.route({
     }
 });
 
-// post a block
-server.route({
-    method: 'POST',
-    path: '/block',
-    handler: (request, h) => {
-        const body = request.payload;
-        if(null === body.address  || !body.hasOwnProperty('address'))
-            return 'missing address';
-        // validate star properties
-        if(null === body.star  || !body.hasOwnProperty('star'))
-            return 'missing star object';
-        if(null === body.star.ra  || !body.star.hasOwnProperty('ra'))
-            return 'missing right_ascension';
-        if(null === body.star.dec  || !body.star.hasOwnProperty('dec'))
-            return 'missing declination';
-        if(null === body.star.story  || !body.star.hasOwnProperty('story'))
-            return 'missing start story';
-        
-        // check story size limit
-        let storyHex = new Buffer(body.star.story).toString('hex');
-        if(storyHex.length > starStorySizeLimit)
-            return 'the hex of star story is too large ('+storyHex.length
-                    +') the limit is '+starStorySizeLimit+' characteres';
-        
-        // create a new star object to sanitize the data
-        let newStart = {
-            "ra": body.star.ra,
-            "dec": body.star.dec,
-            "story": storyHex
-        };
-        // add optionals fields if exists
-        // magnitude (mag)
-        if(null !== body.star.story.mag  && body.star.hasOwnProperty('mag'))
-            newStart.mag = body.star.mag;
-        // constellation (con)
-        if(null !== body.star.story.con  && body.star.hasOwnProperty('con'))
-            newStart.con = body.star.con;
-
-        // put the sanitize data back
-        body.star = newStart;
-        
-        // save the start in block block chain
-        return blockchain.addBlock(new Block(body))
-        .then(function(result){
-            return result;
-        }, function(err){
-            return err;
-        });
-    }
-});
-
 // star registry request validation
 server.route({
     method: 'POST',
@@ -151,7 +100,6 @@ server.route({
         // retrieve registration
         return mempool.get(request.payload.address).then(function(value){
             if(value == undefined) return 'expired or invalid';
-            console.log(value);
             // check validation
             let address = request.payload.address;
             let signature = request.payload.signature;
@@ -163,15 +111,15 @@ server.route({
             validateResult.status.message = message;
             validateResult.status.validationWindow = newTTLInSec;
             
-            // if is valid, save in cache the permission
-            return mempool.set(address, 
+            // save in mempool and return
+            return mempool.set(address,
                 {"action":starRegistryLabel, "timestamp":value.timestamp, "valid":valid}, newTTLInSec).then(function(success){
                 if(success) {
                     // status updated
                     validateResult.registerStar = valid;
                     validateResult.status.messageSignature = (valid?"valid":"invalid");
                 } else {
-                    console.log('problem to update the cache');
+                    console.log('problem to update mempool');
                     validateResult.registerStar = false;
                 } 
                 return validateResult;
@@ -184,6 +132,78 @@ server.route({
     }
 });
 
+// post a block
+server.route({
+    method: 'POST',
+    path: '/block',
+    handler: (request, h) => {
+        const body = request.payload;
+        if(null === body.address  || !body.hasOwnProperty('address'))
+            return 'missing address';
+        // validate star properties
+        if(null === body.star  || !body.hasOwnProperty('star'))
+            return 'missing star object';
+        if(null === body.star.ra  || !body.star.hasOwnProperty('ra'))
+            return 'missing right_ascension';
+        if(null === body.star.dec  || !body.star.hasOwnProperty('dec'))
+            return 'missing declination';
+        if(null === body.star.story  || !body.star.hasOwnProperty('story'))
+            return 'missing start story';
+        
+        // check story size limit
+        let storyHex = Buffer.from(body.star.story).toString('hex');
+        if(storyHex.length > starStorySizeLimit)
+            return 'the hex of star story is too large (' + storyHex.length + ') the limit is '+starStorySizeLimit+' characteres';
+        
+        // get validation from mempool
+        return mempool.get(request.payload.address).then(function(starRegistration){
+            if(request == undefined) return 'expired or invalid';
+            // check validation
+            if(!starRegistration.valid) {
+                // invalid, remove from mempool e return
+                return mempool.del(starRegistration.payload.address)
+                .then(function(){
+                    return 'expired or invalid';
+                }, function(err){
+                    return 'expired or invalid';
+                });
+            }
+            // valid and not expired, let's save the block
+            // create a new star object to sanitize the data
+            let newStart = {
+                "ra": body.star.ra,
+                "dec": body.star.dec,
+                "story": storyHex
+            };
+            // add optionals fields if exists
+            // magnitude (mag)
+            if(null !== body.star.story.mag  && body.star.hasOwnProperty('mag'))
+                newStart.mag = body.star.mag;
+            // constellation (con)
+            if(null !== body.star.story.con  && body.star.hasOwnProperty('con'))
+                newStart.con = body.star.con;
+
+            // put the sanitize data back
+            body.star = newStart;
+            
+            // save the start in block block chain
+            return blockchain.addBlock(new Block(body))
+            .then(function(result){
+                // remove request from mempool
+                return mempool.del(request.payload.address)
+                .then(function(){
+                    return JSON.parse(result);
+                }, function(err){
+                    return 'expired or invalid';
+                });
+            }, function(err){
+                return err;
+            });
+        }, function(err){
+            return "expired or invalid";
+        });
+    }
+});
 
 // get block by star attributes
 server.route({
@@ -207,7 +227,7 @@ server.route({
         
         // handle block after filter
         let handler = function(block) {
-            block.body.star.storyDecoded = new Buffer(block.body.star.story, 'hex').toString();
+            block.body.star.storyDecoded = Buffer.from(block.body.star.story, 'hex').toString();
             return block;
         }
 
@@ -233,7 +253,7 @@ server.route({
                 return 'Not found';
             }
 
-            block.body.star.storyDecoded = new Buffer(block.body.star.story, 'hex').toString();
+            block.body.star.storyDecoded = Buffer.from(block.body.star.story, 'hex').toString();
             return block;
         }, function(err){
             return 'Not Found!';

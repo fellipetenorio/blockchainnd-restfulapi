@@ -20,9 +20,17 @@ exports.set = function(key, data, ttlInSeconds) {
 exports.get = function(key) {
   return new Promise((resolve, reject) => {
     mempool.get(key, function(err, data) {
-      console.log
       if (err) reject(err);
       else resolve(JSON.parse(data));
+    });
+  });
+}
+
+exports.del = function(key) {
+  return new Promise((resolve, reject) => {
+    mempool.del(key, function(err) {
+      if (err) reject(err);
+      resolve();
     });
   });
 }
