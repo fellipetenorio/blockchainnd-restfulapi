@@ -1,11 +1,4 @@
-Providing a RESTFUL api for my private blockchain.
-This project is used only to educational purpose and do not have any intend to run in production environment.
-Node.js Framework selected: hapijs
 
-This node project runs in the port 8000.
-You can change this by modifing the file server.js.
-To run this project go to terminal, change to the project folder and type:
-node server.js
 
 There is two endpoints:
 GET /block/{heigth} retrieves the block indicated by the heigth in URL.
@@ -25,9 +18,16 @@ Use by yourself and by your own risk.
 Access any other end point (e.g. /blocks) will generate a JSON with 404 information:
 {"statusCode":404,"error":"Not Found","message":"Not Found"}
 
-# Project Title
+# Awesome RESTFUL API for private blockchain
 
-One Paragraph of project description goes here
+This project is used only to educational purpose and do not have any intend to run in production environment.
+Node.js Framework selected: 
+
+```
+hapijs
+```
+
+All information in this project is directly or indirectly from [Udacity Nano Degree - Blockchain Developer](https://www.udacity.com/course/blockchain-developer-nanodegree--nd1309). It's an excellent course! Check it out!
 
 ## Getting Started
 
@@ -35,80 +35,277 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-What things you need to install the software and how to install them
-
-```
-Give examples
-```
+You will need the npm to run the project. Check this [link](https://nodejs.org/en/download/) to install Node in you plataform.
 
 ### Installing
 
-A step by step series of examples that tell you how to get a development env running
-
-Say what the step will be
+To install the packages needed (Hapijs, level, etc.) type:
 
 ```
-Give the example
+npm install
 ```
 
-And repeat
-
-```
-until finished
-```
-
-End with an example of getting some data out of the system or using it for a little demo
+If everything goes right we are ready to run the project!
 
 ## Running the tests
 
-Explain how to run the automated tests for this system
-
-### Break down into end to end tests
-
-Explain what these tests test and why
-
+This node project runs in the port 8000 by default.
+You can change this by modifing the file server.js.
+To run this project go to terminal, change to the project folder and type:
 ```
-Give an example
+node server.js
 ```
 
-### And coding style tests
+To live update you can user nodemon to refres the projetct (terminal not the browser) when saving the project.
 
-Explain what these tests test and why
+To install nodemon globally type the command:
 
 ```
-Give an example
+npm install nodemon -g
 ```
 
-## Deployment
+Then run with nodemon:
+```
+nodemon server.js
+```
 
-Add additional notes about how to deploy this on a live system
+If everything is fine open the browser in the link:
 
-## Built With
+[http://localhost:{port}](http://localhost:8000) (8000 by default).
 
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
+# Endpoints
 
-## Contributing
+You can access these endpoint (with mock servers):
 
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
+### Hello World
+* GET /
 
-## Versioning
+Return a friendly Hello World :)
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
+### Get Block
+* GET /block/{height}
 
-## Authors
+Height is the block height in Blockchain (see [here](https://en.bitcoin.it/wiki/Block) for more information). Return the block by it's blockchain height or "not found"
 
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+### Request Validation
+* POST /requestValidation
 
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+This signature proves the users blockchain identity. Upon validation of this identity, the user should be granted access to register a single star.
 
-## License
+Example:
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+```
+curl -X "POST" "http://localhost:8000/requestValidation" \
+     -H 'Content-Type: application/json; charset=utf-8' \
+     -d $'{
+  "address": "142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ"
+}'
+```
 
-## Acknowledgments
+Response:
+```
+{
+  "address": "142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ",
+  "requestTimeStamp": "1532296090",
+  "message": "142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ:1532296090:starRegistry",
+  "validationWindow": 300
+}
+```
 
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
+### Allow User Message Signature
+* POST /message-signature/validate
+
+After receiving the response, users will prove their blockchain identity by signing a message with their wallet. Once they sign this message, the application will validate their request and grant access to register a star.
+
+The payload delivered by the user requires the following fields.
+
+1. Wallet address
+1. Message signature
+
+Message Configuration
+Message for verification can be configured within the application logic from validation request.
+
+\[walletAddress]:[timeStamp]:starRegistry
+
+JSON Response
+Success/fail
+
+Request:
+```
+curl -X "POST" "http://localhost:8000/message-signature/validate" \
+     -H 'Content-Type: application/json; charset=utf-8' \
+     -d $'{
+  "address": "142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ",
+  "signature": "H6ZrGrF0Y4rMGBMRT2+hHWGbThTIyhBS0dNKQRov9Yg6GgXcHxtO9GJN4nwD2yNXpnXHTWU9i+qdw5vpsooryLU="
+}'
+```
+
+Response:
+```
+{
+  "registerStar": true,
+  "status": {
+    "address": "142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ",
+    "requestTimeStamp": "1532296090",
+    "message": "142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ:1532296090:starRegistry",
+    "validationWindow": 193,
+    "messageSignature": "valid"
+  }
+}
+```
+## Put a block in the blockchain
+* POST /block
+
+*JSON request attributes*
+
+1. Requires address [Wallet address]
+1. Requires star object with properties
+1. right_ascension
+1. declination
+1. magnitude *optional*
+1. constellation *optional*
+1. story [Hex encoded Ascii string limited to 250 words/500 bytes]
+
+JSON Response block object:
+```
+{
+  "address": "142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ",
+  "star": {
+  "dec": "-26° 29'\'' 24.9",
+  "ra": "16h 29m 1.0s",
+  "story": "Found star using https://www.google.com/sky/"
+}
+```
+
+*Using cUrl:*
+```
+curl -X "POST" "http://localhost:8000/block" \
+     -H 'Content-Type: application/json; charset=utf-8' \
+     -d $'{
+  "address": "142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ",
+  "star": {
+    "dec": "-26° 29'\'' 24.9",
+    "ra": "16h 29m 1.0s",
+    "story": "Found star using https://www.google.com/sky/"
+  }
+}'
+```
+
+*Response:*
+```
+{
+  "hash": "a59e9e399bc17c2db32a7a87379a8012f2c8e08dd661d7c0a6a4845d4f3ffb9f",
+  "height": 1,
+  "body": {
+    "address": "142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ",
+    "star": {
+      "ra": "16h 29m 1.0s",
+      "dec": "-26° 29' 24.9",
+      "story": "466f756e642073746172207573696e672068747470733a2f2f7777772e676f6f676c652e636f6d2f736b792f"
+    }
+  },
+  "time": "1532296234",
+  "previousBlockHash": "49cce61ec3e6ae664514d5fa5722d86069cf981318fc303750ce66032d0acff3"
+}
+```
+
+
+### Blockchain Wallet Address
+Get the Blocks from the blockchain
+* GET /stars/address:{ADDRESS}
+
+Example
+```
+curl "http://localhost:8000/stars/address:142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ"
+```
+Return an array of block (or empty)
+Response example:
+```
+[
+  {
+    "hash": "a59e9e399bc17c2db32a7a87379a8012f2c8e08dd661d7c0a6a4845d4f3ffb9f",
+    "height": 1,
+    "body": {
+      "address": "142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ",
+      "star": {
+        "ra": "16h 29m 1.0s",
+        "dec": "-26° 29' 24.9",
+        "story": "466f756e642073746172207573696e672068747470733a2f2f7777772e676f6f676c652e636f6d2f736b792f",
+        "storyDecoded": "Found star using https://www.google.com/sky/"
+      }
+    },
+    "time": "1532296234",
+    "previousBlockHash": "49cce61ec3e6ae664514d5fa5722d86069cf981318fc303750ce66032d0acff3"
+  },
+  {
+    "hash": "6ef99fc533b9725bf194c18bdf79065d64a971fa41b25f098ff4dff29ee531d0",
+    "height": 2,
+    "body": {
+      "address": "142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ",
+      "star": {
+        "ra": "17h 22m 13.1s",
+        "dec": "-27° 14' 8.2",
+        "story": "466f756e642073746172207573696e672068747470733a2f2f7777772e676f6f676c652e636f6d2f736b792f",
+        "storyDecoded": "Found star using https://www.google.com/sky/"
+      }
+    },
+    "time": "1532330848",
+    "previousBlockHash": "a59e9e399bc17c2db32a7a87379a8012f2c8e08dd661d7c0a6a4845d4f3ffb9f"
+  }
+]
+```
+### Star Block Hash
+Get the Block from Hash
+* GET /stars/hash/{HASH}
+
+Example
+```
+curl "http://localhost:8000/stars/hash:a59e9e399bc17c2db32a7a87379a8012f2c8e08dd661d7c0a6a4845d4f3ffb9f"
+```
+
+Response:
+```
+{
+  "hash": "a59e9e399bc17c2db32a7a87379a8012f2c8e08dd661d7c0a6a4845d4f3ffb9f",
+  "height": 1,
+  "body": {
+    "address": "142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ",
+    "star": {
+      "ra": "16h 29m 1.0s",
+      "dec": "-26° 29' 24.9",
+      "story": "466f756e642073746172207573696e672068747470733a2f2f7777772e676f6f676c652e636f6d2f736b792f",
+      "storyDecoded": "Found star using https://www.google.com/sky/"
+    }
+  },
+  "time": "1532296234",
+  "previousBlockHash": "49cce61ec3e6ae664514d5fa5722d86069cf981318fc303750ce66032d0acff3"
+}
+```
+
+### Star Block Height
+Get the Block from it's height
+* GET /stars/height/{height}
+
+Example
+```
+curl "http://localhost:8000/block/1"
+```
+
+Response:
+```
+{
+  "hash": "a59e9e399bc17c2db32a7a87379a8012f2c8e08dd661d7c0a6a4845d4f3ffb9f",
+  "height": 1,
+  "body": {
+    "address": "142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ",
+    "star": {
+      "ra": "16h 29m 1.0s",
+      "dec": "-26° 29' 24.9",
+      "story": "466f756e642073746172207573696e672068747470733a2f2f7777772e676f6f676c652e636f6d2f736b792f",
+      "storyDecoded": "Found star using https://www.google.com/sky/"
+    }
+  },
+  "time": "1532296234",
+  "previousBlockHash": "49cce61ec3e6ae664514d5fa5722d86069cf981318fc303750ce66032d0acff3"
+}
+```
