@@ -67,7 +67,7 @@ server.route({
             let currentTTL = validationTimeSeconds-(new Date().getTime().toString().slice(0,-3)-starRegistration.timestamp);
             return {
                 "address": request.payload.address,
-                "requestTimeStamp": ts,
+                "requestTimeStamp": starRegistration.timestamp,
                 "message": message+":"+starRegistryLabel,
                 "validationWindow": currentTTL
             }
@@ -127,6 +127,7 @@ server.route({
 
             validateResult.status.message = message;
             validateResult.status.validationWindow = newTTLInSec;
+            validateResult.status.requestTimeStamp = value.timestamp;
             
             // save in mempool and return
             return mempool.set(address,
