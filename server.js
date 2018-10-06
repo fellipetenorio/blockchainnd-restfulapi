@@ -120,7 +120,7 @@ server.route({
             let signature = request.payload.signature;
             let message = address+":"+value.timestamp+":"+value.action;
             
-            let valid = true;//bitcoinMessage.verify(message, address, signature);
+            let valid = bitcoinMessage.verify(message, address, signature);
             let newTTLInSec = validationTimeSeconds-(new Date().getTime().toString().slice(0,-3)-value.timestamp);
             
             if(0 >= newTTLInSec)  return 'expired or invalid'; // zero
