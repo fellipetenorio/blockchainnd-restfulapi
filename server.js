@@ -173,7 +173,8 @@ server.route({
             return 'missing start story';
         
         // check if the story only contains ASCII characters
-        /^[\x00-\x7F]*$/.test(body.star.story);
+        if(!(/^[\x00-\x7F]*$/.test(body.star.story))) 
+            return 'star story should contain ASCII characters';
 
         // check story size limit
         let storyHex = Buffer.from(body.star.story).toString('hex');
