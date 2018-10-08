@@ -37,12 +37,17 @@ server.route({
     path: '/block/{height}',
     handler: (request, h) => {
         return blockchain.getBlock(request.params.height)
-        .then(function(block){
+        .then(function(blockStr){
+            let block = JSON.parse(blockStr);
+            if(block.body.star == undefined) {
+                return 'Not found';
+            }
+
+            block.body.star.storyDecoded = Buffer.from(block.body.star.story, 'hex').toString();
             return block;
         }, function(err){
             return 'Not Found!';
         });
-        //return 'Hello, ' + encodeURIComponent(request.params.height) + '!';
     }
 });
 
@@ -167,6 +172,9 @@ server.route({
         if(null === body.star.story  || !body.star.hasOwnProperty('story'))
             return 'missing start story';
         
+        // check if the story only contains ASCII characters
+        /^[\x00-\x7F]*$/.test(body.star.story);
+
         // check story size limit
         let storyHex = Buffer.from(body.star.story).toString('hex');
         if(storyHex.length > starStorySizeLimit)
@@ -279,7 +287,6 @@ server.route({
         }, function(err){
             return 'Not Found!';
         });
-        //return 'Hello, ' + encodeURIComponent(request.params.height) + '!';
     }
 });
 
